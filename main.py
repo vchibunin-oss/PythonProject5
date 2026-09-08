@@ -5,12 +5,36 @@ class Product:
     """Класс, описывающий товар."""
 
     def __init__(
-        self, name: str, description: str, price: float, quantity: int
+            self,
+            name: str,
+            description: str,
+            price: float,
+            quantity: int,
     ):
         self.name = name
         self.description = description
-        self.price = price
+        self.__price = price
         self.quantity = quantity
+
+    @classmethod
+    def new_product(cls, product_data):
+        return cls(
+            name=product_data["name"],
+            description=product_data["description"],
+            price=product_data["price"],
+            quantity=product_data["quantity"],
+        )
+
+    @property
+    def price(self):
+        return self.__price
+
+    @price.setter
+    def price(self, value):
+        if value > 0:
+            self.__price = value
+        else:
+            print("Цена не должна быть нулевой или отрицательная")
 
 
 class Category:
@@ -20,10 +44,22 @@ class Category:
     def __init__(self, name: str, description: str, products: list[Product]):
         self.name = name
         self.description = description
-        self.products = products
+        self.__products = products
 
         Category.category_count += 1
         Category.product_count += len(products)
+
+    def add_product(self, product: Product):
+        self.__products.append(product)
+        Category.product_count += 1
+
+    @property
+    def products(self):
+        return "".join(
+            f"{product.name}, {product.price} руб. Остаток: "
+            f"{product.quantity} шт.\n"
+            for product in self.__products
+        )
 
 
 def load_categories_from_json(file_path: str) -> list[Category]:
@@ -43,21 +79,23 @@ def load_categories_from_json(file_path: str) -> list[Category]:
             for product_data in category_data["products"]
         ]
 
-    category = Category(
-        name=category_data["name"],
-        description=category_data["description"],
-        products=products,
-    )
+        category = Category(
+            name=category_data["name"],
+            description=category_data[
+                "description"
+            ],
+            products=products,
+        )
 
-    categories.append(category)
+        categories.append(category)
 
     return categories
 
-    if __name__ == "__main__":
-        categories = load_categories_from_json("products.json")
-        for cat in categories:
-            print(f"{cat.name}: {len(cat.products)} товаров")
 
+if __name__ == "__main__":
+    categories = load_categories_from_json("products.json")
+    for cat in categories:
+        print(f"{cat.name}: {len(cat.products)} товаров")
 
-print(f"Всего категорий: {Category.category_count}")
-print(f"Всего товаров: {Category.product_count}")
+    print(f"Всего категорий: {Category.category_count}")
+    print(f"Всего товаров: {Category.product_count}")
