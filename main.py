@@ -26,7 +26,7 @@ class Product:
         )
 
     def __add__(self, other):
-        return self.price * self.quantity + other.price * other.quantity
+        return self.__price * self.quantity + other.price * other.quantity
 
     @property
     def price(self):
