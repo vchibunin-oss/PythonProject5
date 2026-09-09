@@ -6,8 +6,8 @@ class Product:
 
     def __init__(
             self,
-            name: str,
-            description: str,
+            name: __str__,
+            description: __str__,
             price: float,
             quantity: int,
     ):
@@ -25,6 +25,9 @@ class Product:
             quantity=product_data["quantity"],
         )
 
+    def __add__(self, other):
+        return self.price * self.quantity + other.price * other.quantity
+
     @property
     def price(self):
         return self.__price
@@ -35,6 +38,9 @@ class Product:
             self.__price = value
         else:
             print("Цена не должна быть нулевой или отрицательная")
+
+    def __str__(self):
+         return f"{self.name}, {self.price} руб. Остаток: {self.quantity} шт."
 
 
 class Category:
@@ -53,13 +59,20 @@ class Category:
         self.__products.append(product)
         Category.product_count += 1
 
+    def __str__(self):
+        total_quantity = sum(product.quantity for product in self.__products)
+        return f"{self.name}, количество продуктов: {total_quantity} шт."
+
     @property
     def products(self):
         return "".join(
             f"{product.name}, {product.price} руб. Остаток: "
             f"{product.quantity} шт.\n"
-            for product in self.__products
-        )
+            for product in self.__products)
+
+    def __str__(self):
+        total_quantity = sum(product.quantity for product in self.__products)
+        return f"{self.name}, количество продуктов: {total_quantity} шт."
 
 
 def load_categories_from_json(file_path: str) -> list[Category]:
