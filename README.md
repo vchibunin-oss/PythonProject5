@@ -8,3 +8,4 @@
 poetry install
 poetry run python main.pyТесты
 poetry run pytest --cov=main --cov-report=term-missing
+Проект выполнен в рамках домашнего задания.
