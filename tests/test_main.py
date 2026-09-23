@@ -2,7 +2,8 @@ import json
 
 import pytest
 
-from main import Category, LawnGrass, Product, Smartphone, load_categories_from_json
+from main import (BaseProduct, Category, LawnGrass, Product, Smartphone,
+                  load_categories_from_json)
 
 
 @pytest.fixture(autouse=True)
@@ -193,7 +194,7 @@ def test_product_price_setter_invalid(product_1: Product, capsys):
     captured = capsys.readouterr()
 
     assert product_1.price == 180000.0
-    assert captured.out.strip() == ("Цена не должна быть нулевой " "или отрицательная")
+    assert captured.out.strip() == ("Цена не должна быть нулевой или отрицательная")
 
 
 def test_smartphone_attributes():
@@ -241,3 +242,48 @@ def test_lawn_grass_attributes():
 def test_category_add_product_invalid(category_1):
     with pytest.raises(TypeError):
         category_1.add_product("Не товар")
+
+
+def test_product_inherits_from_base_product():
+    assert issubclass(Product, BaseProduct)
+
+
+def test_product_mixin_print(capsys):
+    Product(
+        "Тестовый продукт",
+        "Описание",
+        1000.0,
+        5,
+    )
+
+    captured = capsys.readouterr()
+
+    assert "Тестовый продукт" in captured.out
+    assert "1000.0" in captured.out
+    assert "5" in captured.out
+
+
+def test_smartphone_and_lawn_grass_are_products():
+    smartphone = Smartphone(
+        name="iPhone 15",
+        description="512GB",
+        price=210000.0,
+        quantity=8,
+        efficiency=95.5,
+        model="iPhone 15",
+        memory=512,
+        color="Black",
+    )
+
+    grass = LawnGrass(
+        name="Газонная трава",
+        description="Спортивный газон",
+        price=1500.0,
+        quantity=10,
+        country="Россия",
+        germination_period="10 дней",
+        color="Зеленый",
+    )
+
+    assert isinstance(smartphone, Product)
+    assert isinstance(grass, Product)

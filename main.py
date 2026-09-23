@@ -1,9 +1,11 @@
 import json
+from abc import ABC, abstractmethod
 
 
-class Product:
-    """Класс, описывающий товар."""
+class BaseProduct(ABC):
+    """Абстрактный базовый класс для продуктов."""
 
+    @abstractmethod
     def __init__(
         self,
         name: str,
@@ -13,8 +15,37 @@ class Product:
     ):
         self.name = name
         self.description = description
-        self.__price = price
+        self._price = price
         self.quantity = quantity
+
+
+class PrintMixin:
+    """Миксин для вывода информации о создании объекта."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        print(
+            f"Создан объект класса {self.__class__.__name__} "
+            f"с параметрами: {args}, {kwargs}"
+        )
+
+
+class Product(PrintMixin, BaseProduct):
+    """Класс, описывающий товар."""
+
+    def __init__(
+        self,
+        name: str,
+        description: str,
+        price: float,
+        quantity: int,
+    ):
+        super().__init__(
+            name=name,
+            description=description,
+            price=price,
+            quantity=quantity,
+        )
 
     @classmethod
     def new_product(cls, product_data):
@@ -37,17 +68,26 @@ class Product:
 
     @property
     def price(self):
-        return self.__price
+        return self._price
 
     @price.setter
     def price(self, value):
         if value > 0:
-            self.__price = value
+            self._price = value
         else:
             print("Цена не должна быть нулевой или отрицательная")
 
     def __str__(self):
-        return f"{self.name}, {self.price} руб. " f"Остаток: {self.quantity} шт."
+        return f"{self.name}, {self.price} руб. Остаток: {self.quantity} шт."
+
+    def __repr__(self):
+        return (
+            f"{self.__class__.__name__}("
+            f"{self.name!r}, "
+            f"{self.description!r}, "
+            f"{self.price!r}, "
+            f"{self.quantity!r})"
+        )
 
 
 class Smartphone(Product):
@@ -91,6 +131,8 @@ class LawnGrass(Product):
 
 
 class Category:
+    """Класс категории товаров."""
+
     category_count = 0
     product_count = 0
 
@@ -115,7 +157,7 @@ class Category:
 
     def __str__(self):
         total_quantity = sum(product.quantity for product in self.__products)
-        return f"{self.name}, количество продуктов: " f"{total_quantity} шт."
+        return f"{self.name}, количество продуктов: {total_quantity} шт."
 
     @property
     def products(self):
@@ -128,7 +170,6 @@ class Category:
 
 def load_categories_from_json(file_path: str) -> list[Category]:
     """Читает JSON-файл и создаёт объекты Category и Product."""
-
     with open(file_path, "r", encoding="utf-8") as file:
         data = json.load(file)
 
