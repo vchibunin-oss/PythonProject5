@@ -40,6 +40,9 @@ class Product(PrintMixin, BaseProduct):
         price: float,
         quantity: int,
     ):
+        if quantity == 0:
+            raise ValueError("Товар с нулевым количеством не может быть добавлен")
+
         super().__init__(
             name=name,
             description=description,
@@ -154,6 +157,14 @@ class Category:
             raise TypeError("Можно добавлять только товары")
         self.__products.append(product)
         Category.product_count += 1
+
+    def average_price(self):
+        try:
+            return sum(product.price for product in self.__products) / len(
+                self.__products
+            )
+        except ZeroDivisionError:
+            return 0
 
     def __str__(self):
         total_quantity = sum(product.quantity for product in self.__products)
