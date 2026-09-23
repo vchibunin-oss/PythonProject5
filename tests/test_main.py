@@ -2,7 +2,8 @@ import json
 
 import pytest
 
-from main import Category, Product, load_categories_from_json
+from main import (BaseProduct, Category, LawnGrass, Product, Smartphone,
+                  load_categories_from_json)
 
 
 @pytest.fixture(autouse=True)
@@ -48,10 +49,62 @@ def test_product_attributes(product_1):
     assert product_1.quantity == 5
 
 
-def test_category_attributes(category_1, product_1, product_2):
+def test_product_str(product_1: Product):
+    assert str(product_1) == (
+        "Samsung Galaxy S23 Ultra, 180000.0 руб." " Остаток: 5 шт."
+    )
+
+
+def test_product_add(product_1: Product, product_2: Product):
+    assert product_1 + product_2 == 2580000.0
+
+
+def test_product_add_different_types(product_1: Product):
+    smartphone = Smartphone(
+        name="iPhone 15",
+        description="512GB",
+        price=210000.0,
+        quantity=8,
+        efficiency=95.5,
+        model="iPhone 15",
+        memory=512,
+        color="Black",
+    )
+
+    with pytest.raises(TypeError):
+        product_1 + smartphone
+
+
+def test_product_add_method(product_1: Product, product_2: Product):
+    assert product_1.add(product_2) == 2580000.0
+
+
+def test_product_add_method_different_types(product_1: Product):
+    grass = LawnGrass(
+        name="Газонная трава",
+        description="Спортивный газон",
+        price=1500.0,
+        quantity=10,
+        country="Россия",
+        germination_period="10 дней",
+        color="Зеленый",
+    )
+
+    with pytest.raises(TypeError):
+        product_1.add(grass)
+
+
+def test_category_attributes(category_1):
     assert category_1.name == "Смартфоны"
     assert category_1.description == "Телефоны и смартфоны"
-    assert category_1.products == [product_1, product_2]
+    assert category_1.products == (
+        "Samsung Galaxy S23 Ultra, 180000.0 руб. Остаток: 5 шт.\n"
+        "Iphone 15, 210000.0 руб. Остаток: 8 шт.\n"
+    )
+
+
+def test_category_str(category_1: Category):
+    assert str(category_1) == "Смартфоны, количество продуктов: 13 шт."
 
 
 def test_category_count(category_1):
@@ -61,6 +114,23 @@ def test_category_count(category_1):
 def test_product_count(category_1):
     assert Category.product_count == 2
 
+
+def test_category_add_product(category_1: Category, product_1: Product):
+    category_1.add_product(product_1)
+
+    assert "Samsung Galaxy S23 Ultra" in category_1.products
+    assert Category.product_count == 3
+
+
+def test_category_products_getter(category_1):
+    expected = (
+        "Samsung Galaxy S23 Ultra, 180000.0 руб. Остаток: 5 шт.\n"
+        "Iphone 15, 210000.0 руб. Остаток: 8 шт.\n"
+    )
+
+    assert category_1.products == expected
+
+
 def test_load_categories_from_json(tmp_path):
     data = [
         {
@@ -68,16 +138,16 @@ def test_load_categories_from_json(tmp_path):
             "description": "Телефоны и смартфоны",
             "products": [
                 {
-                     "name": "Samsung Galaxy S23 Ultra",
-                     "description": "256GB, Серый цвет, 200MP камера",
-                     "price": 180000.0,
-                     "quantity": 5,
+                    "name": "Samsung Galaxy S23 Ultra",
+                    "description": "256GB, Серый цвет, 200MP камера",
+                    "price": 180000.0,
+                    "quantity": 5,
                 },
                 {
-                      "name": "Iphone 15",
-                      "description": "512GB, Gray space",
-                      "price": 210000.0,
-                      "quantity": 8,
+                    "name": "Iphone 15",
+                    "description": "512GB, Gray space",
+                    "price": 210000.0,
+                    "quantity": 8,
                 },
             ],
         }
@@ -91,7 +161,129 @@ def test_load_categories_from_json(tmp_path):
     assert len(categories) == 1
     assert categories[0].name == "Смартфоны"
     assert categories[0].description == "Телефоны и смартфоны"
-    assert len(categories[0].products) == 2
-    assert categories[0].products[0].name == "Samsung Galaxy S23 Ultra"
-    assert categories[0].products[1].name == "Iphone 15"
+    assert "Samsung Galaxy S23 Ultra" in categories[0].products
+    assert "Iphone 15" in categories[0].products
 
+
+def test_product_new_product():
+    product_data = {
+        "name": "Test Product",
+        "description": "Test description",
+        "price": 1000.0,
+        "quantity": 10,
+    }
+
+    product = Product.new_product(product_data)
+
+    assert isinstance(product, Product)
+    assert product.name == "Test Product"
+    assert product.description == "Test description"
+    assert product.price == 1000.0
+    assert product.quantity == 10
+
+
+def test_product_price_setter(product_1: Product):
+    product_1.price = 200000.0
+
+    assert product_1.price == 200000.0
+
+
+def test_product_price_setter_invalid(product_1: Product, capsys):
+    product_1.price = 0
+
+    captured = capsys.readouterr()
+
+    assert product_1.price == 180000.0
+    assert captured.out.strip() == ("Цена не должна быть нулевой или отрицательная")
+
+
+def test_smartphone_attributes():
+    smartphone = Smartphone(
+        name="iPhone 15",
+        description="512GB",
+        price=210000.0,
+        quantity=8,
+        efficiency=95.5,
+        model="iPhone 15",
+        memory=512,
+        color="Black",
+    )
+
+    assert smartphone.name == "iPhone 15"
+    assert smartphone.description == "512GB"
+    assert smartphone.price == 210000.0
+    assert smartphone.quantity == 8
+    assert smartphone.efficiency == 95.5
+    assert smartphone.model == "iPhone 15"
+    assert smartphone.memory == 512
+    assert smartphone.color == "Black"
+
+
+def test_lawn_grass_attributes():
+    grass = LawnGrass(
+        name="Газонная трава",
+        description="Спортивный газон",
+        price=1500.0,
+        quantity=10,
+        country="Россия",
+        germination_period="10 дней",
+        color="Зеленый",
+    )
+
+    assert grass.name == "Газонная трава"
+    assert grass.description == "Спортивный газон"
+    assert grass.price == 1500.0
+    assert grass.quantity == 10
+    assert grass.country == "Россия"
+    assert grass.germination_period == "10 дней"
+    assert grass.color == "Зеленый"
+
+
+def test_category_add_product_invalid(category_1):
+    with pytest.raises(TypeError):
+        category_1.add_product("Не товар")
+
+
+def test_product_inherits_from_base_product():
+    assert issubclass(Product, BaseProduct)
+
+
+def test_product_mixin_print(capsys):
+    Product(
+        "Тестовый продукт",
+        "Описание",
+        1000.0,
+        5,
+    )
+
+    captured = capsys.readouterr()
+
+    assert "Тестовый продукт" in captured.out
+    assert "1000.0" in captured.out
+    assert "5" in captured.out
+
+
+def test_smartphone_and_lawn_grass_are_products():
+    smartphone = Smartphone(
+        name="iPhone 15",
+        description="512GB",
+        price=210000.0,
+        quantity=8,
+        efficiency=95.5,
+        model="iPhone 15",
+        memory=512,
+        color="Black",
+    )
+
+    grass = LawnGrass(
+        name="Газонная трава",
+        description="Спортивный газон",
+        price=1500.0,
+        quantity=10,
+        country="Россия",
+        germination_period="10 дней",
+        color="Зеленый",
+    )
+
+    assert isinstance(smartphone, Product)
+    assert isinstance(grass, Product)
